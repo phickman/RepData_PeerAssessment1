@@ -87,17 +87,45 @@ There are `r nomissing` missing values in the data set.
 
 The missing days will be filled with the mean for that 5 minute interval.  A new dataset will be created will the filled in values.
 ```{r}
-# to-do
+
+## fixsteps fills in the missing step with the average for that interval
+## if the steps are not missing, then nothing happens
+fixsteps <- function(steps, interval) {
+    if(is.na(steps))
+    {
+        # totalSteps holds the mean for each interval
+        # value missing so return the average for this interval
+        return(totalSteps[totalSteps$interval==interval,]$steps)
+    } else {
+        # good
+        return(steps)
+    }
+}
+
+# create the new dataset with the missing values filled
+activity_fixed <- activity
+activity_fixed$steps <- mapply(FUN = fixsteps, activity$steps, activity$interval)
 ```
 
 The histogram of the total number of steps taken each day for the new dataset is:
 ```{r}
-# to-do
+totalSteps_fixed <- aggregate(steps ~ date, data = activity_fixed, sum)
+
+hist(
+    totalSteps_fixed$steps, 
+    xlab = "Steps per day", 
+    main = "Histogram of the total number of steps per day (missing data filled)"
+    )
 ```
 
-The mean and median total number of steps taken per day for the new dataset is:
+For the total number of steps taken per day in the new dataset, the new mean is: 
 ```{r}
-# to-do
+mean(totalSteps_fixed$steps)
+```
+
+And median is:
+```{r}
+median(totalSteps_fixed$steps)
 ```
 
 Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
