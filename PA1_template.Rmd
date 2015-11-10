@@ -23,12 +23,10 @@ activity = read.csv("activity.csv")
 Calculate the total number of steps taken per day, ignoring the missing values in the dataset.
 
 ```{r}
-totalSteps <- aggregate(steps ~ date, data = activity, sum, na.rm = TRUE)
-
-write.csv(totalSteps, "steps_per_day.csv")
+stepsByDate <- aggregate(steps ~ date, data = activity, sum, na.rm = TRUE)
 
 hist(
-    totalSteps$steps, 
+    stepsByDate$steps, 
     xlab = "Steps per day", 
     main = "Histogram of the total number of steps per day"
     )
@@ -36,12 +34,12 @@ hist(
 
 Calculate and report the mean 
 ```{r}
-mean(totalSteps$steps)
+mean(stepsByDate$steps)
 ```
 
 and median of the total number of steps taken per day
 ```{r}
-median(totalSteps$steps)
+median(stepsByDate$steps)
 ```
 
 
@@ -50,16 +48,14 @@ median(totalSteps$steps)
 A time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 ```{r}
 # interpreted the "you can ignore the missing values in the dataset" to mean this section as well
-totalSteps <- aggregate(steps ~ interval, data = activity, mean, na.rm = TRUE)
+stepsByInterval <- aggregate(steps ~ interval, data = activity, mean, na.rm = TRUE)
 
-write.csv(totalSteps, "steps_per_interval.csv")
-
-plot(totalSteps$interval, totalSteps$steps, type = "l", xlab = "5 minute Interval", ylab = "Average Steps")
+plot(stepsByInterval$interval, stepsByInterval$steps, type = "l", xlab = "5 minute Interval", ylab = "Average Steps")
 ```
 
 On average, across all the days in the dataset, the 5-minute interval that contains the maximum number of steps is:
 ```{r}
-maxsteps <- totalSteps[totalSteps$steps==max(totalSteps$steps),]
+maxsteps <- stepsByInterval[stepsByInterval$steps==max(stepsByInterval$steps),]
 maxsteps
 ```
 
@@ -85,9 +81,9 @@ The missing days will be filled with the mean for that 5 minute interval.  A new
 fixsteps <- function(steps, interval) {
     if(is.na(steps))
     {
-        # totalSteps holds the mean for each interval
+        # stepsByInterval holds the mean for each interval
         # value missing so return the average for this interval
-        return(totalSteps[totalSteps$interval==interval,]$steps)
+        return(stepsByInterval[stepsByInterval$interval==interval,]$steps)
     } else {
         # good
         return(steps)
@@ -97,18 +93,14 @@ fixsteps <- function(steps, interval) {
 # create the new dataset with the missing values filled
 activity_fixed <- activity
 activity_fixed$steps <- mapply(FUN = fixsteps, activity$steps, activity$interval)
-
-write.csv(activity_fixed, "activity_fixed.csv")
 ```
 
 The histogram of the total number of steps taken each day for the new dataset is:
 ```{r}
-totalSteps_fixed <- aggregate(steps ~ date, data = activity_fixed, sum)
-
-write.csv(totalSteps_fixed, "steps_per_day_fixed.csv")
+stepsByDate_fixed <- aggregate(steps ~ date, data = activity_fixed, sum)
 
 hist(
-    totalSteps_fixed$steps, 
+    stepsByDate_fixed$steps, 
     xlab = "Steps per day", 
     main = "Histogram of the total number of steps per day (missing data filled)"
     )
@@ -116,19 +108,17 @@ hist(
 
 For the total number of steps taken per day in the new dataset, the new mean is: 
 ```{r}
-mean(totalSteps_fixed$steps)
+mean(stepsByDate_fixed$steps)
 ```
 
 And median is:
 ```{r}
-median(totalSteps_fixed$steps)
+median(stepsByDate_fixed$steps)
 ```
 
-Do these values differ from the estimates from the first part of the assignment?
-The mean has not changed from the first part of the assignment.  However, the median has increased slightly to match the mean.
+These are very similar to the estimates in the first part of the assignment.  The mean has not changed from the first part of the assignment.  However, the median has increased slightly to match the mean.
 
-What is the impact of imputing missing data on the estimates of the total daily number of steps?
-The missing values are for whole days rather than random intervals through the whole dataset.  As a result the imputed data inserts daily averages, which results in no change to the overall daily average.  However, the daily average is higher than some of the lower days and this has pushed up the mid point.
+The impact of imputing missing data on the estimates of the total daily number of steps is small.  The missing values are for whole days rather than random intervals through the whole dataset.  As a result the imputed data inserts daily averages, which results in no change to the overall daily average.  However, the change has slightly increased the median.
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
@@ -146,23 +136,25 @@ activity_fixed$daytype <- factor((weekdays(activity_fixed$date) %in% c('Saturday
          
 ```
 
-Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). See the README file in the GitHub repository to see an example of what this plot should look like using simulated data.
+Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
 
 ```{r}
 library(ggplot2)
 
-# todo - datasource should be interval average
+# average the steps by interval for plotting
+stepsByInterval_fixed <- aggregate(steps ~ interval+daytype, data = activity_fixed, mean)
 
+# plot by the type of day
 qplot(
   interval, 
   steps, 
-  data = activity_fixed,
+  data = stepsByInterval_fixed,
+  col = daytype,
   geom = "line",
   xlab = "Interval", 
   ylab = "Number of steps", 
   main = "Comparison between weekday and weekend steps"
   ) + facet_wrap(~daytype, ncol=1)
-
 ```
 
-Are there differences?
+There are differences between weekday and weekend step count.  Weekdays typically start earlier than weekends and peak about the 800 interval mark.  Weekends generally start a little later and have more consistent steps through the remainder of the day, tailing off in a similar way to weekdays.  This could be indicative of someone getting up earlier to go to work, walking more to get to work and then less during the day, before returning home.
