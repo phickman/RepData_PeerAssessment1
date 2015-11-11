@@ -8,10 +8,7 @@ output:
 
 ## Loading and preprocessing the data
 
-The data is contained within activity.zip in the working directory.  Unzip activity.csv from the zip file and load.
-
-setwd("C:/Users/phickma/Desktop/GitHub/RepData_PeerAssessment1/activity")
-setwd("C:/Users/paul_/Documents/Code/Reproducible Research/RepData_PeerAssessment1")
+The data (activity.csv) is contained within activity.zip in the working directory and needs to be unzipped and loaded.
 
 ```{r}
 unzip(zipfile = "activity.zip")
@@ -23,6 +20,7 @@ activity = read.csv("activity.csv")
 Calculate the total number of steps taken per day, ignoring the missing values in the dataset.
 
 ```{r}
+# aggregate steps by date
 stepsByDate <- aggregate(steps ~ date, data = activity, sum, na.rm = TRUE)
 
 hist(
@@ -45,9 +43,9 @@ median(stepsByDate$steps)
 
 ## What is the average daily activity pattern?
 
-A time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+Create a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 ```{r}
-# interpreted the "you can ignore the missing values in the dataset" to mean this section as well
+# aggregate steps by interval
 stepsByInterval <- aggregate(steps ~ interval, data = activity, mean, na.rm = TRUE)
 
 plot(stepsByInterval$interval, stepsByInterval$steps, type = "l", xlab = "5 minute Interval", ylab = "Average Steps")
@@ -73,7 +71,7 @@ nomissing
 
 There are `r nomissing` missing values in the data set.
 
-The missing days will be filled with the mean for that 5 minute interval.  A new dataset will be created will the filled in values.
+The missing days will be filled with the mean for that 5 minute interval.  A new dataset will be created with the imputed in values.
 ```{r}
 
 ## fixsteps fills in the missing step with the average for that interval
@@ -95,8 +93,9 @@ activity_fixed <- activity
 activity_fixed$steps <- mapply(FUN = fixsteps, activity$steps, activity$interval)
 ```
 
-The histogram of the total number of steps taken each day for the new dataset is:
+Plot a histogram of the total number of steps taken each day for the new dataset is:
 ```{r}
+# aggregate the imputed steps data by date
 stepsByDate_fixed <- aggregate(steps ~ date, data = activity_fixed, sum)
 
 hist(
@@ -118,14 +117,12 @@ median(stepsByDate_fixed$steps)
 
 These are very similar to the estimates in the first part of the assignment.  The mean has not changed from the first part of the assignment.  However, the median has increased slightly to match the mean.
 
-The impact of imputing missing data on the estimates of the total daily number of steps is small.  The missing values are for whole days rather than random intervals through the whole dataset.  As a result the imputed data inserts daily averages, which results in no change to the overall daily average.  However, the change has slightly increased the median.
+The impact of imputing missing data on the estimates of the total daily number of steps is small.  The missing values are for whole days rather than random intervals throughout the whole dataset.  As a result the imputed data inserts daily averages, which results in no change to the overall daily average.  However, the imputed data has slightly increased the median.
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-For this part the weekdays() function may be of some help here. Use the dataset with the filled-in missing values for this part.
-
-Create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
+Using the dataset with filled in missing values, create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
 
 ```{r}
 # convert to a real date
@@ -136,7 +133,7 @@ activity_fixed$daytype <- factor((weekdays(activity_fixed$date) %in% c('Saturday
          
 ```
 
-Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
+Make a panel plot containing a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
 
 ```{r}
 library(ggplot2)
@@ -157,4 +154,4 @@ qplot(
   ) + facet_wrap(~daytype, ncol=1)
 ```
 
-There are differences between weekday and weekend step count.  Weekdays typically start earlier than weekends and peak about the 800 interval mark.  Weekends generally start a little later and have more consistent steps through the remainder of the day, tailing off in a similar way to weekdays.  This could be indicative of someone getting up earlier to go to work, walking more to get to work and then less during the day, before returning home.
+There are differences between average weekday and weekend step count.  Activity on weekdays typically start earlier than weekends and peak about the 800 interval mark.  Activity on weekends generally start a little later and have more consistent steps through the remainder of the day, tailing off in a similar way to weekdays.  This could be indicative of someone getting up earlier to go to work, walking more to get to work and then less during the day, before returning home.
