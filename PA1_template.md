@@ -63,7 +63,8 @@ Create a time series plot of the 5-minute interval (x-axis) and the average numb
 # aggregate steps by interval
 stepsByInterval <- aggregate(steps ~ interval, data = activity, mean, na.rm = TRUE)
 
-plot(stepsByInterval$interval, stepsByInterval$steps, type = "l", xlab = "5 minute Interval", ylab = "Average Steps")
+plot(stepsByInterval$interval, stepsByInterval$steps, type = "l",
+     xlab = "5 minute Interval", ylab = "Average Steps")
 ```
 
 ![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5-1.png) 
@@ -171,7 +172,8 @@ Using the dataset with filled in missing values, create a new factor variable in
 activity_fixed$date <- as.Date(activity_fixed$date)
 
 # create the new factor variable with weekday or weekend based on the date
-activity_fixed$daytype <- factor((weekdays(activity_fixed$date) %in% c('Saturday','Sunday')), levels=c(FALSE, TRUE), labels=c('weekday', 'weekend'))
+activity_fixed$daytype <- factor((weekdays(activity_fixed$date) %in% c('Saturday','Sunday')), 
+                                 levels = c(FALSE, TRUE), labels = c('weekday', 'weekend'))
 ```
 
 Make a panel plot containing a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
